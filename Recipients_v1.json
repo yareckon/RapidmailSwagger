@@ -1,0 +1,1023 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Recipients",
+    "version": "1"
+  },
+  "tags": [
+    {
+      "name": "Recipients",
+      "description": "API Service to manage recipients"
+    },
+    {
+      "name": "RecipientImport",
+      "description": "API Service to import recipients from a CSV file. Note that this service does NOT support multipart file uploads, but the file upload must be contained within the JSON body as a base64-encoded string."
+    }
+  ],
+  "paths": {
+    "/recipients": {
+      "get": {
+        "tags": [
+          "Recipients"
+        ],
+        "description": "Get a list of recipients. Please note that extrabig fields are not returned by default. Loading extrabig fields can be enabled by setting get_extra_big_fields=true as a query parameter.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "recipientlist_id",
+            "description": "Recipientlist ID to get recipients from",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1,
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "email",
+            "description": "Filter recipients by email address",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "foreign_id",
+            "description": "Filter recipients by foreign/external ID",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "default": "1",
+            "description": "Page to load",
+            "type": "integer",
+            "minimum": "1"
+          },
+          {
+            "in": "query",
+            "name": "sort_by",
+            "description": "Field to sort by, can be activated, created or updated",
+            "type": "string",
+            "enum": [
+              "activated",
+              "created",
+              "updated"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "sort_order",
+            "description": "Order to sort in, can be asc or desc",
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "description": "Filter by status. Can contain multiple values in comma-separated list",
+            "type": "array",
+            "collectionFormat": "csv",
+            "items": {
+              "type": "string",
+              "enum": [
+                "new",
+                "active",
+                "bounced",
+                "abused",
+                "deleted"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "get_extra_big_fields",
+            "description": "If specified, extrabig fields will be returned for each recipient.",
+            "type": "string",
+            "default": "no",
+            "enum": [
+              "yes",
+              "no"
+            ]
+          }
+        ],
+        "produces": [
+          "application/hal+json",
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RecipientsRead"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recipients"
+        ],
+        "description": "Create a new recipient. Please note that a deleted recipient with the same email address will be re-activated if found.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipientsWrite"
+            }
+          },
+          {
+            "in": "query",
+            "name": "track_stats",
+            "type": "array",
+            "description": "If enabled, stats will be tracked for recipient. Default is no.",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "default": "no"
+          },
+          {
+            "in": "query",
+            "name": "send_activationmail",
+            "type": "array",
+            "description": "If enabled, activationmail will be sent. Note that this applies only for recipients with status \"new\" and is ignored for all other recipient statuses. Activation mails are never sent for demo accounts.",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "default": "no"
+          },
+          {
+            "in": "query",
+            "name": "test_mode",
+            "type": "array",
+            "description": "If testmode is enabled, no data will be saved. Default is no.",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "default": "no"
+          },
+          {
+            "in": "query",
+            "name": "get_extra_big_fields",
+            "description": "If specified, extrabig fields will be returned for each recipient.",
+            "type": "string",
+            "default": "no",
+            "enum": [
+              "yes",
+              "no"
+            ]
+          }
+        ],
+        "produces": [
+          "application/hal+json",
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/RecipientsRead"
+            }
+          },
+          "400": {
+            "description": "Client Error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "description": "Validation failure"
+          }
+        }
+      }
+    },
+    "/recipients/{recipient_id}": {
+      "get": {
+        "tags": [
+          "Recipients"
+        ],
+        "description": "Load a single recipient by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient_id",
+            "description": "URL parameter recipient_id",
+            "type": "integer",
+            "required": true,
+            "minimum": 1,
+            "maximum": 1
+          }
+        ],
+        "produces": [
+          "application/hal+json",
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RecipientsRead"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Recipients"
+        ],
+        "description": "Update recipient record with partial update support.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient_id",
+            "description": "URL parameter recipient_id",
+            "type": "integer",
+            "required": true,
+            "minimum": 0,
+            "maximum": 1
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipientsWrite"
+            }
+          }
+        ],
+        "produces": [
+          "application/hal+json",
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RecipientsRead"
+            }
+          },
+          "400": {
+            "description": "Client Error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "description": "Validation failure"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Recipients"
+        ],
+        "description": "Delete recipient by ID. Please note that a recipient is only soft-deleted and marked as deleted when calling this to mimic unsubscribe behavior.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient_id",
+            "description": "URL parameter recipient_id",
+            "type": "integer",
+            "required": true,
+            "minimum": 0,
+            "maximum": 1
+          },
+          {
+            "in": "query",
+            "name": "track_unsubscription",
+            "type": "array",
+            "description": "If enabled, unsubscription will be tracked in stats. Defaults to yes.",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "default": "yes"
+          },
+          {
+            "in": "query",
+            "name": "test_mode",
+            "type": "array",
+            "description": "If testmode is enabled, no data will be saved. Default is no.",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "default": "no"
+          }
+        ],
+        "produces": [
+          "application/hal+json",
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          }
+        }
+      }
+    },
+    "/recipients/import": {
+      "post": {
+        "tags": [
+          "Recipients",
+          "RecipientImport"
+        ],
+        "description": "Import a list of recipients into the recipientlist from a CSV file. Multipart uploads are not supported. Please note that the import will not be instantaneous, but will be queued in the jobqueue for processing, and a job entity response returned. The Jobs api service can then be used to poll the job status.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "recipientlist_id": {
+                  "name": "recipientlist_id",
+                  "description": "Recipientlist ID to import recipients into",
+                  "type": "integer",
+                  "example": 123,
+                  "minimum": 1,
+                  "maximum": 1,
+                  "required": true
+                },
+                "file": {
+                  "type": "object",
+                  "description": "File to upload as object structure containing the keys type, size and name as a normal file upload would on the server-side, but instead of a tmp_name, content propery must be used for file content in base64 encoded format",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "File content, base64 encoded"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "File mimetype, should by csv or zip type",
+                      "example": "text/csv",
+                      "enum": [
+                        "text/plain",
+                        "text/csv",
+                        "application/zip",
+                        "application/x-zip-compressed"
+                      ]
+                    }
+                  }
+                }
+              },
+              "required": [
+                "file"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "delimiter",
+            "type": "string",
+            "description": "Field delimiter character, defaults to ;",
+            "maxLength": "1",
+            "default": ";"
+          },
+          {
+            "in": "query",
+            "name": "enclosure",
+            "type": "string",
+            "description": "Enclosure character, defaults to \"",
+            "maxLength": "1",
+            "default": "\""
+          },
+          {
+            "in": "query",
+            "name": "recipient_exists",
+            "type": "array",
+            "description": "Specify handling for recipients that already exist\n  * stock - Use data already in record.\n  * importfile - Use data from importfile\n",
+            "default": "stock",
+            "enum": [
+              "stock",
+              "importfile"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "recipient_missing",
+            "type": "array",
+            "description": "Specify handling for recipients that does not yet exist\n  * nothing - Ignore the record.\n  * delete - Delete the record in database\n  * softdelete - Mark record as deleted.\n",
+            "default": "nothing",
+            "enum": [
+              "nothing",
+              "delete",
+              "softdelete"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "recipient_deleted",
+            "type": "array",
+            "description": "Specify handling for recipients that have been marked as deleted\n  * nothing - Do nothing.\n  * import - Import and override record\n",
+            "default": "stock",
+            "enum": [
+              "nothing",
+              "import"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "test_mode",
+            "type": "array",
+            "description": "If test mode is enabled, imported data will not be saved",
+            "default": "no",
+            "enum": [
+              "yes",
+              "no"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "map_firstname",
+            "type": "string",
+            "description": "Name of field in CSV file to use for firstname extraction",
+            "default": "firstname"
+          },
+          {
+            "in": "query",
+            "name": "map_lastname",
+            "type": "string",
+            "description": "Name of field in CSV file to use for lastname extraction",
+            "default": "lastname"
+          },
+          {
+            "in": "query",
+            "name": "map_gender",
+            "type": "string",
+            "description": "Name of field in CSV file to use for gender extraction",
+            "default": "gender"
+          },
+          {
+            "in": "query",
+            "name": "map_title",
+            "type": "string",
+            "description": "Name of field in CSV file to use for title extraction",
+            "default": "title"
+          },
+          {
+            "in": "query",
+            "name": "map_zip",
+            "type": "string",
+            "description": "Name of field in CSV file to use for zip extraction",
+            "default": "zip"
+          },
+          {
+            "in": "query",
+            "name": "map_birthdate",
+            "type": "string",
+            "description": "Name of field in CSV file to use for birthdate extraction",
+            "default": "birthdate"
+          },
+          {
+            "in": "query",
+            "name": "map_mailtype",
+            "type": "string",
+            "description": "Name of field in CSV file to use for mailtype extraction",
+            "default": "mailtype"
+          },
+          {
+            "in": "query",
+            "name": "map_foreign_id",
+            "type": "string",
+            "description": "Name of field in CSV file to use for foreign_id extraction",
+            "default": "foreign_id"
+          },
+          {
+            "in": "query",
+            "name": "map_extra1",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra1 extraction",
+            "default": "extra1"
+          },
+          {
+            "in": "query",
+            "name": "map_extra2",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra2 extraction",
+            "default": "extra2"
+          },
+          {
+            "in": "query",
+            "name": "map_extra3",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra3 extraction",
+            "default": "extra3"
+          },
+          {
+            "in": "query",
+            "name": "map_extra4",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra4 extraction",
+            "default": "extra4"
+          },
+          {
+            "in": "query",
+            "name": "map_extra5",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra5 extraction",
+            "default": "extra5"
+          },
+          {
+            "in": "query",
+            "name": "map_extra6",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra6 extraction",
+            "default": "extra6"
+          },
+          {
+            "in": "query",
+            "name": "map_extra7",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra7 extraction",
+            "default": "extra7"
+          },
+          {
+            "in": "query",
+            "name": "map_extra8",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra8 extraction",
+            "default": "extra8"
+          },
+          {
+            "in": "query",
+            "name": "map_extra9",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra9 extraction",
+            "default": "extra9"
+          },
+          {
+            "in": "query",
+            "name": "map_extra10",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extra10 extraction",
+            "default": "extra10"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig1",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig1 extraction",
+            "default": "extrabig1"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig2",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig2 extraction",
+            "default": "extrabig2"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig3",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig3 extraction",
+            "default": "extrabig3"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig4",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig4 extraction",
+            "default": "extrabig4"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig5",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig5 extraction",
+            "default": "extrabig5"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig6",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig6 extraction",
+            "default": "extrabig6"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig7",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig7 extraction",
+            "default": "extrabig7"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig8",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig8 extraction",
+            "default": "extrabig8"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig9",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig9 extraction",
+            "default": "extrabig9"
+          },
+          {
+            "in": "query",
+            "name": "map_extrabig10",
+            "type": "string",
+            "description": "Name of field in CSV file to use for extrabig10 extraction",
+            "default": "extrabig10"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/jose+json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "../shared/Jobs_v1.json#/definitions/Jobs"
+            }
+          },
+          "400": {
+            "description": "Client Error"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "406": {
+            "description": "Not Acceptable"
+          },
+          "415": {
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "description": "Validation failure"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Recipients": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "ID",
+          "example": 1,
+          "readOnly": true
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address",
+          "example": "michael.j.fox@example.com",
+          "maxLength": 255
+        },
+        "recipientlist_id": {
+          "type": "integer",
+          "description": "Recipientlist ID the recipient is assigned to",
+          "example": 138
+        },
+        "firstname": {
+          "type": "string",
+          "description": "Firstname",
+          "example": "Michael J.",
+          "maxLength": 255
+        },
+        "lastname": {
+          "type": "string",
+          "description": "Lastname",
+          "example": "Fox",
+          "maxLength": 255
+        },
+        "gender": {
+          "type": "string",
+          "description": "Gender",
+          "example": "male",
+          "enum": [
+            "male",
+            "female"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "description": "Title (academic)",
+          "example": "Prof. Dr."
+        },
+        "zip": {
+          "type": "string",
+          "description": "Zipcode",
+          "example": 86154,
+          "maxLength": 7
+        },
+        "birthdate": {
+          "type": "string",
+          "description": "Birthdate",
+          "example": "1974-01-01T00:00:00.000Z"
+        },
+        "foreign_id": {
+          "type": "string",
+          "description": "Foreign/external ID of record",
+          "example": 121,
+          "maxLength": 255
+        },
+        "mailtype": {
+          "type": "string",
+          "description": "Mailtype specifying if recipient wants text or html email",
+          "example": "text",
+          "enum": [
+            "text",
+            "html"
+          ]
+        },
+        "extra1": {
+          "type": "string",
+          "description": "Extra 1",
+          "example": "Extra 1",
+          "maxLength": 100
+        },
+        "extra2": {
+          "type": "string",
+          "description": "Extra 2",
+          "example": "Extra 2",
+          "maxLength": 100
+        },
+        "extra3": {
+          "type": "string",
+          "description": "Extra 3",
+          "example": "Extra 3",
+          "maxLength": 100
+        },
+        "extra4": {
+          "type": "string",
+          "description": "Extra 4",
+          "example": "Extra 4",
+          "maxLength": 100
+        },
+        "extra5": {
+          "type": "string",
+          "description": "Extra 5",
+          "example": "Extra 5",
+          "maxLength": 100
+        },
+        "extra6": {
+          "type": "string",
+          "description": "Extra 6",
+          "example": "Extra 6",
+          "maxLength": 100
+        },
+        "extra7": {
+          "type": "string",
+          "description": "Extra 7",
+          "example": "Extra 4",
+          "maxLength": 100
+        },
+        "extra8": {
+          "type": "string",
+          "description": "Extra 8",
+          "example": "Extra 8",
+          "maxLength": 100
+        },
+        "extra9": {
+          "type": "string",
+          "description": "Extra 9",
+          "example": "Extra 9",
+          "maxLength": 100
+        },
+        "extra10": {
+          "type": "string",
+          "description": "Extra 10",
+          "example": "Extra 10",
+          "maxLength": 100
+        },
+        "extrabig1": {
+          "type": "string",
+          "description": "Extra big 1",
+          "example": "Extra big 1",
+          "maxLength": 65535
+        },
+        "extrabig2": {
+          "type": "string",
+          "description": "Extra big 2",
+          "example": "Extra big 2",
+          "maxLength": 65535
+        },
+        "extrabig3": {
+          "type": "string",
+          "description": "Extra big 3",
+          "example": "Extra big 3",
+          "maxLength": 65535
+        },
+        "extrabig4": {
+          "type": "string",
+          "description": "Extra big 4",
+          "example": "Extra big 4",
+          "maxLength": 65535
+        },
+        "extrabig5": {
+          "type": "string",
+          "description": "Extra big 5",
+          "example": "Extra big 5",
+          "maxLength": 65535
+        },
+        "extrabig6": {
+          "type": "string",
+          "description": "Extra big 6",
+          "example": "Extra big 6",
+          "maxLength": 65535
+        },
+        "extrabig7": {
+          "type": "string",
+          "description": "Extra big 7",
+          "example": "Extra big 4",
+          "maxLength": 65535
+        },
+        "extrabig8": {
+          "type": "string",
+          "description": "Extra big 8",
+          "example": "Extra big 8",
+          "maxLength": 65535
+        },
+        "extrabig9": {
+          "type": "string",
+          "description": "Extra big 9",
+          "example": "Extra big 9",
+          "maxLength": 65535
+        },
+        "extrabig10": {
+          "type": "string",
+          "description": "Extra big 10",
+          "example": "Extra big 10",
+          "maxLength": 65535
+        },
+        "created": {
+          "type": "string",
+          "description": "Created datetime",
+          "example": "2017-01-01 12:00:00",
+          "readOnly": true
+        },
+        "updated": {
+          "type": "string",
+          "description": "Last modified datetime",
+          "example": "2017-01-01 12:00:00",
+          "readOnly": true
+        },
+        "created_ip": {
+          "type": "string",
+          "description": "IP address recipient was created from. Will default to current remote IP if not given",
+          "example": "169.12.141.23"
+        },
+        "created_hostname": {
+          "type": "string",
+          "description": "Hostname recipient was created from. Will default to current remote host if not given",
+          "example": "my.hostname.company.de",
+          "maxLength": 255
+        },
+        "activated": {
+          "type": "string",
+          "description": "Datetime recipient was activated",
+          "example": "2017-01-01 12:00:00"
+        },
+        "status": {
+          "type": "string",
+          "description": "Recipient status",
+          "example": "new",
+          "enum": [
+            "new",
+            "active",
+            "bounced",
+            "abused",
+            "deleted"
+          ]
+        }
+      },
+      "required": [
+        "email"
+      ]
+    },
+    "RecipientsRead": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Recipients"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "readOnly": true,
+              "enum": [
+                "new",
+                "active",
+                "deleted",
+                "bounced",
+                "abused",
+                "deleted"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "RecipientsWrite": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Recipients"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "new"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ]
+}
